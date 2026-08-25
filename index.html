@@ -58,7 +58,9 @@
   .card { background: var(--surface); border: 1px solid var(--line); border-radius: 2px; padding: 18px; margin-bottom: 18px; }
   .empty { color: var(--ink-soft); font-size: 13px; padding: 18px 4px; text-align: center; line-height: 1.7; }
   .form-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
-  .field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 100px; }
+  .field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+  .field-narrow { flex: 0 0 auto; }
+  .field-narrow input[type="date"], .field-narrow input[type="number"] { width: 160px; min-width: 0; }
   .field label { font-size: 11px; color: var(--ink-soft); letter-spacing: 0.04em; }
   .field input, .field select { font-family: 'IBM Plex Mono', monospace; font-size: 14px; border: 1px solid var(--line); background: var(--surface-alt); padding: 8px 10px; border-radius: 2px; color: var(--ink); width: 100%; }
   .field input:focus, .field select:focus { outline: 2px solid var(--sage); outline-offset: 1px; }
@@ -332,8 +334,10 @@ function App() {
           <div className="card">
             <form onSubmit={addWeight}>
               <div className="form-row">
-                <div className="field"><label>日期</label><input type="date" value={wDate} onChange={(e) => setWDate(e.target.value)} max={todayStr()} /></div>
-                <div className="field"><label>體重 (kg)</label><input type="number" step="0.1" inputMode="decimal" value={wValue} onChange={(e) => setWValue(e.target.value)} placeholder="例如 62.4" required /></div>
+                <div className="field field-narrow"><label>日期</label><input type="date" value={wDate} onChange={(e) => setWDate(e.target.value)} max={todayStr()} /></div>
+              </div>
+              <div className="form-row">
+                <div className="field field-narrow"><label>體重 (kg)</label><input type="number" step="0.1" inputMode="decimal" value={wValue} onChange={(e) => setWValue(e.target.value)} placeholder="例如 62.4" required /></div>
               </div>
               <div className="form-row">
                 <div className="field"><label>備註（選填）</label><input type="text" value={wNote} onChange={(e) => setWNote(e.target.value)} placeholder="例如 早晨空腹" /></div>
@@ -380,7 +384,7 @@ function App() {
           <div className="card">
             <form onSubmit={addInjection}>
               <div className="form-row">
-                <div className="field"><label>日期</label><input type="date" value={iDate} onChange={(e) => setIDate(e.target.value)} max={todayStr()} /></div>
+                <div className="field field-narrow"><label>日期</label><input type="date" value={iDate} onChange={(e) => setIDate(e.target.value)} max={todayStr()} /></div>
               </div>
               <div className="field" style={{ marginBottom: 10 }}>
                 <label>劑量 (mg)</label>

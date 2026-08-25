@@ -140,8 +140,11 @@ const IconPlus = () => (
 
 // Simple SVG line chart (no external chart library needed)
 function WeightChart({ data, goal }) {
+  const [selected, setSelected] = React.useState(data.length - 1);
+  React.useEffect(() => { setSelected(data.length - 1); }, [data.length]);
+
   if (data.length < 2) return null;
-  const W = 600, H = 220, padL = 40, padR = 16, padT = 16, padB = 28;
+  const W = 600, H = 220, padL = 40, padR = 16, padT = 30, padB = 28;
   const weights = data.map((d) => d.weight);
   const min = Math.min(...weights, goal || Infinity) - 1;
   const max = Math.max(...weights, goal || -Infinity) + 1;
@@ -152,8 +155,19 @@ function WeightChart({ data, goal }) {
   const yTicks = 4;
   const tickVals = Array.from({ length: yTicks + 1 }, (_, i) => min + ((max - min) * i) / yTicks);
 
+  const sel = data[selected];
+  const selX = sel ? xFor(selected) : null;
+  const selY = sel ? yFor(sel.weight) : null;
+
+  // label tag sizing, clamped so it never runs off the chart edges
+  const tagW = 74, tagH = 36;
+  let tagX = selX != null ? selX - tagW / 2 : 0;
+  tagX = Math.max(padL - 6, Math.min(tagX, W - padR - tagW + 6));
+  const showAbove = sel && selY - tagH - 10 > 0;
+  const tagY = sel ? (showAbove ? selY - tagH - 10 : selY + 12) : 0;
+
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="220" style={{ display: "block" }}>
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="220" style={{ display: "block", touchAction: "manipulation" }}>
       {tickVals.map((v, i) => (
         <g key={i}>
           <line x1={padL} x2={W - padR} y1={yFor(v)} y2={yFor(v)} stroke="#DDD5C4" strokeDasharray="2 4" />
@@ -164,15 +178,53 @@ function WeightChart({ data, goal }) {
         <line x1={padL} x2={W - padR} y1={yFor(goal)} y2={yFor(goal)} stroke="#B98A67" strokeDasharray="3 3" strokeWidth="1.5" />
       )}
       <polyline points={points} fill="none" stroke="#727E64" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+
+      {sel && (
+        <line x1={selX} x2={selX} y1={padT} y2={H - padB} stroke="#8F8778" strokeDasharray="2 3" strokeWidth="1" />
+      )}
+
       {data.map((d, i) => (
-        <circle key={i} cx={xFor(i)} cy={yFor(d.weight)} r="3" fill="#727E64" />
+        <circle
+          key={i}
+          cx={xFor(i)}
+          cy={yFor(d.weight)}
+          r={i === selected ? 5 : 3}
+          fill={i === selected ? "#727E64" : "#727E64"}
+          stroke={i === selected ? "#FBF9F4" : "none"}
+          strokeWidth={i === selected ? 2 : 0}
+        />
       ))}
+      {/* larger invisible hit targets for easy tapping on mobile */}
+      {data.map((d, i) => (
+        <circle
+          key={"hit" + i}
+          cx={xFor(i)}
+          cy={yFor(d.weight)}
+          r="14"
+          fill="transparent"
+          style={{ cursor: "pointer" }}
+          onClick={() => setSelected(i)}
+        />
+      ))}
+
       {data.map((d, i) => {
         if (data.length > 8 && i % Math.ceil(data.length / 6) !== 0 && i !== data.length - 1) return null;
         return (
           <text key={"t" + i} x={xFor(i)} y={H - 8} fontFamily="IBM Plex Mono" fontSize="10" fill="#8F8778" textAnchor="middle">{d.label}</text>
         );
       })}
+
+      {sel && (
+        <g style={{ pointerEvents: "none" }}>
+          <rect x={tagX} y={tagY} width={tagW} height={tagH} rx="3" fill="#35312B" />
+          <text x={tagX + tagW / 2} y={tagY + 17} textAnchor="middle" fontFamily="IBM Plex Mono" fontSize="13" fontWeight="600" fill="#FBF9F4">
+            {sel.weight.toFixed(1)} kg
+          </text>
+          <text x={tagX + tagW / 2} y={tagY + 30} textAnchor="middle" fontFamily="IBM Plex Mono" fontSize="9" fill="#B0A894">
+            {sel.label}
+          </text>
+        </g>
+      )}
     </svg>
   );
 }
